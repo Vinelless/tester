@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: rgb(100, 30, 30);
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: auto; /* Pushes container to the top */
+        }
+
+        .image-container {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .image-container img, .image-container video {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        form {
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            margin-top: 5px;
+        }
+
+        button[type="submit"] {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload a File</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file">Choose a file to upload:</label>
+            <input type="file" id="file" name="file" accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.avi" required>
+            <br><br>
+            <button type="submit">Upload</button>
+        </form>
+
+        <!-- Container for displaying uploaded image or video -->
+        <div class="image-container" id="imageContainer">
+            <!-- JavaScript will dynamically add the uploaded image or video here -->
+        </div>
+    </div>
+
+    <!-- Script to display uploaded image or video -->
+    <script>
+        // Function to display the selected image or video
+        document.getElementById('file').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    if (['mp4', 'mov', 'avi'].includes(fileExtension)) {
+                        displayVideo(e.target.result);
+                    } else {
+                        displayImage(e.target.result);
+                    }
+                    localStorage.setItem('uploadedImageOrVideo', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Function to display an image
+        function displayImage(src) {
+            const imgElement = document.createElement('img');
+            imgElement.src = src;
+            imgElement.alt = 'Uploaded Image';
+            imgElement.onload = function() {
+                const imageContainer = document.getElementById('imageContainer');
+                clearContainer(imageContainer);
+                if (imgElement.width > imgElement.height) {
+                    imgElement.style.height = '100%';
+                    imgElement.style.width = 'auto';
+                } else {
+                    imgElement.style.width = '100%';
+                    imgElement.style.height = 'auto';
+                }
+                imageContainer.appendChild(imgElement);
+            };
+        }
+
+        // Function to display a video
+        function displayVideo(src) {
+            const videoElement = document.createElement('video');
+            videoElement.src = src;
+            videoElement.type = 'video/mp4'; // Assuming mp4 for simplicity
+            videoElement.autoplay = true;
+            videoElement.loop = true;
+            videoElement.controls = true;
+            videoElement.style.width = '100%';
+            videoElement.style.height = 'auto';
+            videoElement.style.objectFit = 'contain';
+            const imageContainer = document.getElementById('imageContainer');
+            clearContainer(imageContainer);
+            imageContainer.appendChild(videoElement);
+        }
+
+        // Function to clear the container
+        function clearContainer(container) {
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // Check if there's a previously uploaded image or video in local storage and display it
+        window.onload = function() {
+            const uploadedMedia = localStorage.getItem('uploadedImageOrVideo');
+            if (uploadedMedia) {
+                const fileExtension = uploadedMedia.split(';')[0].split('/')[1];
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                    displayImage(uploadedMedia);
+                } else if (['mp4', 'mov', 'avi'].includes(fileExtension)) {
+                    displayVideo(uploadedMedia);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
