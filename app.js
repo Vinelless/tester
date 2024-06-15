@@ -5,6 +5,9 @@ const fs = require('fs');
 
 const app = express();
 
+// Serve static files from the 'assets' directory
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
 // Serve the HTML file
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -47,8 +50,20 @@ app.post('/upload', uploadMiddleware.single('file'), (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
+// Endpoint to list all uploaded files
+app.get('/list-uploads', (req, res) => {
+    fs.readdir(uploadDir, (err, files) => {
+        if (err) {
+            return res.status(500).send('Unable to scan directory: ' + err);
+        }
+        // Filter only images and videos
+        const fileList = files.filter(file => /\.(jpg|jpeg|png|gif|mp4|mov|avi)$/i.test(file));
+        res.json(fileList);
+    });
+});
 
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server up and running on port ${PORT}`);
 });
+
