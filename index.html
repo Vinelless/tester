@@ -12,62 +12,175 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: rgb(100, 30, 30);
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to top, #87CEFA, #ffffff); /* Sky background */
+            overflow: hidden;
+            position: relative;
         }
 
         .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
             max-width: 600px;
             padding: 20px;
-            background-color: #f0f0f0;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: auto; /* Pushes container to the top */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #4CAF50;
         }
 
         .image-container {
-            width: 100%;
-            max-width: 600px;
-            height: auto;
-            border: 2px solid #ccc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
+    width: 300px; /* Initial width */
+    height: 300px; /* Initial height */
+    border: 2px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    margin-bottom: 20px;
+    transition: border-radius 0.3s ease;
+    border-radius: 10px;
+}
 
-        .image-container img, .image-container video {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-        }
+.image-container img, .image-container video {
+    width: 100%; /* Initially fill width */
+    height: 100%; /* Initially fill height */
+    object-fit: cover; /* Cover to fill the container */
+}
+
 
         form {
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         label {
             font-weight: bold;
+            margin-bottom: 10px;
         }
 
         input[type="file"] {
-            margin-top: 5px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            cursor: pointer;
         }
 
         button[type="submit"] {
-            margin-top: 10px;
-            padding: 8px 16px;
+            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
         button[type="submit"]:hover {
             background-color: #45a049;
+        }
+
+        #uploadedFilesSection {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        #uploadedFilesSection h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        #fileList {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .image-container {
+                width: 100%;
+                height: auto;
+            }
+
+            button[type="submit"] {
+                width: 100%;
+                padding: 10px;
+            }
+        }
+
+        /* Animation for grass and flowers */
+        .grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 200px;
+            background: #32CD32;
+            overflow: hidden;
+        }
+
+        .grass:before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, transparent 20%, #32CD32 20%) repeat-x;
+            animation: grassWave 10s linear infinite;
+        }
+
+        @keyframes grassWave {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        .flowers {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .flower {
+            position: absolute;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            background: pink;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: flowerFloat 5s linear infinite;
+        }
+
+        @keyframes flowerFloat {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(-20px);
+            }
         }
     </style>
 </head>
@@ -77,90 +190,107 @@
         <form action="/upload" method="post" enctype="multipart/form-data">
             <label for="file">Choose a file to upload:</label>
             <input type="file" id="file" name="file" accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.avi" required>
-            <br><br>
             <button type="submit">Upload</button>
         </form>
 
-        <!-- Container for displaying uploaded image or video -->
         <div class="image-container" id="imageContainer">
             <!-- JavaScript will dynamically add the uploaded image or video here -->
         </div>
+
+        <div id="uploadedFilesSection">
+            <h2>Choose an Uploaded File</h2>
+            <select id="fileList">
+                <option value="">Select an uploaded file</option>
+            </select>
+        </div>
     </div>
 
-    <!-- Script to display uploaded image or video -->
+    <div class="grass"></div>
+    <div class="flowers">
+        <!-- JavaScript will dynamically add the flowers here -->
+    </div>
+
     <script>
-        // Function to display the selected image or video
-        document.getElementById('file').addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const fileExtension = file.name.split('.').pop().toLowerCase();
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file');
+            const fileList = document.getElementById('fileList');
+            const imageContainer = document.getElementById('imageContainer');
+            const flowersContainer = document.querySelector('.flowers');
+
+            // Fetch and display the list of uploaded files
+            fetch('/list-uploads')
+                .then(response => response.json())
+                .then(files => {
+                    files.forEach(file => {
+                        const option = document.createElement('option');
+                        option.value = `/uploads/${file}`;
+                        option.textContent = file;
+                        fileList.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching file list:', error));
+
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const fileExtension = file.name.split('.').pop().toLowerCase();
+                        if (['mp4', 'mov', 'avi'].includes(fileExtension)) {
+                            displayVideo(e.target.result);
+                        } else {
+                            displayImage(e.target.result);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            fileList.addEventListener('change', function() {
+                const selectedFile = this.value;
+                if (selectedFile) {
+                    const fileExtension = selectedFile.split('.').pop().toLowerCase();
                     if (['mp4', 'mov', 'avi'].includes(fileExtension)) {
-                        displayVideo(e.target.result);
+                        displayVideo(selectedFile);
                     } else {
-                        displayImage(e.target.result);
+                        displayImage(selectedFile);
                     }
-                    localStorage.setItem('uploadedImageOrVideo', e.target.result);
-                };
-                reader.readAsDataURL(file);
+                }
+            });
+
+            function displayImage(src) {
+                imageContainer.innerHTML = ''; // Clear previous content
+                const imgElement = document.createElement('img');
+                imgElement.src = src;
+                imgElement.alt = 'Uploaded Image';
+                imageContainer.appendChild(imgElement);
+            }
+
+            function displayVideo(src) {
+    imageContainer.innerHTML = ''; // Clear previous content
+    const videoElement = document.createElement('video');
+    videoElement.src = src;
+    videoElement.type = 'video/mp4';
+    videoElement.autoplay = true;
+    videoElement.loop = true;
+    videoElement.controls = true;
+    videoElement.style.width = '100%'; // Fill width of container
+    videoElement.style.height = '100%'; // Fill height of container
+    videoElement.style.objectFit = 'cover'; // Maintain aspect ratio and fill container
+    imageContainer.appendChild(videoElement);
+}
+
+
+            // Add random flowers to the background
+            for (let i = 0; i < 20; i++) {
+                const flower = document.createElement('div');
+                flower.classList.add('flower');
+                flower.style.left = `${Math.random() * 100}%`;
+                flower.style.animationDelay = `${Math.random() * 5}s`;
+                flowersContainer.appendChild(flower);
             }
         });
-
-        // Function to display an image
-        function displayImage(src) {
-            const imgElement = document.createElement('img');
-            imgElement.src = src;
-            imgElement.alt = 'Uploaded Image';
-            imgElement.onload = function() {
-                const imageContainer = document.getElementById('imageContainer');
-                clearContainer(imageContainer);
-                if (imgElement.width > imgElement.height) {
-                    imgElement.style.height = '100%';
-                    imgElement.style.width = 'auto';
-                } else {
-                    imgElement.style.width = '100%';
-                    imgElement.style.height = 'auto';
-                }
-                imageContainer.appendChild(imgElement);
-            };
-        }
-
-        // Function to display a video
-        function displayVideo(src) {
-            const videoElement = document.createElement('video');
-            videoElement.src = src;
-            videoElement.type = 'video/mp4'; // Assuming mp4 for simplicity
-            videoElement.autoplay = true;
-            videoElement.loop = true;
-            videoElement.controls = true;
-            videoElement.style.width = '100%';
-            videoElement.style.height = 'auto';
-            videoElement.style.objectFit = 'contain';
-            const imageContainer = document.getElementById('imageContainer');
-            clearContainer(imageContainer);
-            imageContainer.appendChild(videoElement);
-        }
-
-        // Function to clear the container
-        function clearContainer(container) {
-            while (container.firstChild) {
-                container.removeChild(container.firstChild);
-            }
-        }
-
-        // Check if there's a previously uploaded image or video in local storage and display it
-        window.onload = function() {
-            const uploadedMedia = localStorage.getItem('uploadedImageOrVideo');
-            if (uploadedMedia) {
-                const fileExtension = uploadedMedia.split(';')[0].split('/')[1];
-                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-                    displayImage(uploadedMedia);
-                } else if (['mp4', 'mov', 'avi'].includes(fileExtension)) {
-                    displayVideo(uploadedMedia);
-                }
-            }
-        };
+        
     </script>
 </body>
 </html>
